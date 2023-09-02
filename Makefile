@@ -76,7 +76,7 @@ BINFILESMC += $(BIN_DIR)/song.mod.addr.mc
 $(BIN_DIR)/twist_chars0.bin: $(BIN_DIR)/twist.bin
 	$(MC) $< cm1:1 d1:1 cl1:10000 rc1:0
 
-$(BIN_DIR)/bowlcharset.bin: $(BIN_DIR)/bowl.bin
+$(BIN_DIR)/bowl_chars0.bin: $(BIN_DIR)/bowl.bin
 	$(MC) $< cm1:1 d1:3 cl1:50000 rc1:0
 
 $(BIN_DIR)/alldata.bin: $(BINFILES)
