@@ -1,5 +1,5 @@
 .define palette			$6800
-.define screen			$7000
+.define screen1			$7000
 .define emptyscreen		$7800
 .define emptychar		$c000
 .define twistcharset	$10000
@@ -32,24 +32,19 @@ entry_main
 		sta $d02f
 		eom
 
-		; force PAL mode, because I can't be bothered with fixing it for NTSC
-		lda #%10000000
-		;tsb $d06f ; set bit 7 for NTSC
-		trb $d06f ; clear bit 7 for PAL
+		lda #%10000000									; force PAL mode, because I can't be bothered with fixing it for NTSC
+		trb $d06f										; clear bit 7 for PAL ; trb $d06f 
+		;tsb $d06f										; set bit 7 for NTSC  ; tsb $d06f
 
 		lda #$41										; enable 40MHz
 		sta $00
 
-		lda #$70										; Disable C65 rom protection using hypervisor trap (see mega65 manual)
-		sta $d640
-		eom
+		;lda #$70										; Disable C65 rom protection using hypervisor trap (see mega65 manual)
+		;sta $d640
+		;eom
 
 		lda #%11111000									; unmap c65 roms $d030 by clearing bits 3-7
 		trb $d030
-
-		cli
-		
-		sei
 
 		lda #$05										; enable Super-Extended Attribute Mode by asserting the FCLRHI and CHR16 signals - set bits 2 and 0 of $D054.
 		sta $d054
@@ -71,36 +66,36 @@ entry_main
 
 		ldx #$00
 :		lda #<(emptychar/64)
-		sta emptyscreen+0*$0100+0,x
-		sta emptyscreen+1*$0100+0,x
-		sta emptyscreen+2*$0100+0,x
-		sta emptyscreen+3*$0100+0,x
-		sta emptyscreen+4*$0100+0,x
-		sta emptyscreen+5*$0100+0,x
-		sta emptyscreen+6*$0100+0,x
-		sta emptyscreen+7*$0100+0,x
+		sta screen1+0*$0100+0,x
+		sta screen1+1*$0100+0,x
+		sta screen1+2*$0100+0,x
+		sta screen1+3*$0100+0,x
+		sta screen1+4*$0100+0,x
+		sta screen1+5*$0100+0,x
+		sta screen1+6*$0100+0,x
+		sta screen1+7*$0100+0,x
 		lda #>(emptychar/64)
-		sta emptyscreen+0*$0100+1,x
-		sta emptyscreen+1*$0100+1,x
-		sta emptyscreen+2*$0100+1,x
-		sta emptyscreen+3*$0100+1,x
-		sta emptyscreen+4*$0100+1,x
-		sta emptyscreen+5*$0100+1,x
-		sta emptyscreen+6*$0100+1,x
-		sta emptyscreen+7*$0100+1,x
+		sta screen1+0*$0100+1,x
+		sta screen1+1*$0100+1,x
+		sta screen1+2*$0100+1,x
+		sta screen1+3*$0100+1,x
+		sta screen1+4*$0100+1,x
+		sta screen1+5*$0100+1,x
+		sta screen1+6*$0100+1,x
+		sta screen1+7*$0100+1,x
 		inx
 		inx
 		bne :-
 
 		DMA_RUN_JOB clearcolorramjob
 
-		lda #<emptyscreen								; set pointer to screen ram
+		lda #<.loword(screen1)							; set pointer to screen ram
 		sta $d060
-		lda #>emptyscreen
+		lda #>.loword(screen1)
 		sta $d061
-		lda #(emptyscreen & $ff0000) >> 16
+		lda #<.hiword(screen1)
 		sta $d062
-		lda #$00
+		lda #>.hiword(screen1)
 		sta $d063
 
 		lda #<$0800										; set (offset!) pointer to colour ram
@@ -154,11 +149,11 @@ entry_main
 
 		jsr peppitoInit
 
-		lda #<screen										; set pointer to screen ram
+		lda #<screen1										; set pointer to screen ram
 		sta $d060
-		lda #>screen
+		lda #>screen1
 		sta $d061
-		lda #(screen & $ff0000) >> 16
+		lda #(screen1 & $ff0000) >> 16
 		sta $d062
 		lda #$00
 		sta $d063
@@ -188,8 +183,8 @@ entry_main
 		ldx #<(destcharset/64)
 		ldy #>(destcharset/64)
 
-put0	stx screen+0
-put1	sty screen+1
+put0	stx screen1+0
+put1	sty screen1+1
 
 		clc
 		txa
@@ -228,7 +223,7 @@ put1	sty screen+1
 		cmp #80
 		beq endscreenplot
 
-		lda #>screen
+		lda #>screen1
 		sta put0+2
 		sta put1+2
 		clc

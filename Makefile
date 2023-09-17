@@ -56,20 +56,10 @@ BINFILES += $(BIN_DIR)/bowl_chars0.bin
 BINFILES += $(BIN_DIR)/bowl_pal0.bin
 BINFILES += $(BIN_DIR)/song.mod
 
-BINFILESADDR  = $(BIN_DIR)/twist_chars0.bin.addr
-BINFILESADDR += $(BIN_DIR)/bowl_chars0.bin.addr
-BINFILESADDR += $(BIN_DIR)/bowl_pal0.bin.addr
-BINFILESADDR += $(BIN_DIR)/song.mod.addr
-
 BINFILESMC  = $(BIN_DIR)/twist_chars0.bin.addr.mc
 BINFILESMC += $(BIN_DIR)/bowl_chars0.bin.addr.mc
 BINFILESMC += $(BIN_DIR)/bowl_pal0.bin.addr.mc
 BINFILESMC += $(BIN_DIR)/song.mod.addr.mc
-
-# % is a wildcard
-# $< is the first dependency
-# $@ is the target
-# $^ is all dependencies
 
 # -----------------------------------------------------------------------------
 
@@ -98,17 +88,16 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					Makefile Linkfile
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(EXE_DIR)/boot.prg.addr: $(EXE_DIR)/boot.o Linkfile
+$(EXE_DIR)/boot.prg.addr.mc: $(BINFILES) $(EXE_DIR)/boot.o Linkfile
 	$(LD) -Ln $(EXE_DIR)/boot.maptemp --dbgfile $(EXE_DIR)/boot.dbg -C Linkfile -o $(EXE_DIR)/boot.prg $(EXE_DIR)/boot.o
-	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 2001
-	$(SED) $(CONVERTVICEMAP) < $(EXE_DIR)/boot.maptemp > boot.map
-	$(SED) $(CONVERTVICEMAP) < $(EXE_DIR)/boot.maptemp > boot.list
+	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 00002100
+	$(MEGACRUNCH) -e 00002100 $(EXE_DIR)/boot.prg.addr
 
-$(EXE_DIR)/xmas65.d81: $(EXE_DIR)/boot.prg.addr $(BIN_DIR)/alldata.bin
+$(EXE_DIR)/xmas65.d81: $(EXE_DIR)/boot.prg.addr.mc $(BIN_DIR)/alldata.bin
 	$(RM) $@
 	$(CC1541) -n "   merry xmas   " -i "     " -v\
 	 \
-	 -f "xmas65" -w $(EXE_DIR)/boot.prg.addr \
+	 -f "xmas65" -w $(EXE_DIR)/boot.prg.addr.mc \
 	 -f "xmas65.ifflcrch" -w $(BIN_DIR)/alldata.bin \
 	$@
 
@@ -121,7 +110,7 @@ ifeq ($(megabuild), 1)
 ifeq ($(useetherload), 1)
 
 	$(MEGAFTP) -c "put D:\Mega\XMAS65\exe\xmas65.d81 xmas65.d81" -c "quit"
-	$(EL) -m XMAS65.D81 -r $(EXE_DIR)/boot.prg.addr
+	$(EL) -m XMAS65.D81 -r $(EXE_DIR)/boot.prg.addr.mc
 
 else
 
